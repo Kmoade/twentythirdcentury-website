@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: twentythirdcentury-platform
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: unzip -o deployment/TwentyThirdCentury-operational-platform.zip -d . && cd TwentyThirdCentury-fullstack && npm install
+    startCommand: cd TwentyThirdCentury-fullstack && npm start
+    healthCheckPath: /api/health
+    disk:
+      name: ttc-platform-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/twentythirdcentury.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: sekatanekhanyi@gmail.com
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
