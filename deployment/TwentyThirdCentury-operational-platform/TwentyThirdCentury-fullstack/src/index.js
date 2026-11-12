@@ -70,7 +70,9 @@ async function api(req,env) {
   }
   if(p==="/api/posts"&&m==="GET"){
     const rows=await env.DB.prepare("SELECT p.id,p.body,p.created_at,u.username,(SELECT COUNT(*) FROM likes l WHERE l.post_id=p.id) AS likes,(SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id) AS comments,EXISTS(SELECT 1 FROM likes l WHERE l.post_id=p.id AND l.user_id=?) AS liked FROM posts p JOIN users u ON u.id=p.user_id WHERE p.status='active' ORDER BY p.id DESC LIMIT 60").bind(user?.id||0).all();
-    const posts=[];for(const x of rows.results||[]){const c=await env.DB.prepare("SELECT c.id,c.body,c.created_at,u.username FROM comments c JOIN users u ON u.id=c.user_id WHERE c.post_id=? ORDER BY c.id LIMIT 30").bind(x.id).all();posts.push({...x,liked:Boolean(x.liked),commentsList:c.results||[]});}return out({posts});
+    const comments=await env.DB.prepare("SELECT c.id,c.post_id,c.body,c.created_at,u.username FROM comments c JOIN users u ON u.id=c.user_id WHERE c.post_id IN (SELECT id FROM posts WHERE status='active' ORDER BY id DESC LIMIT 60) ORDER BY c.post_id,c.id").all();
+    const byPost=new Map();for(const c of comments.results||[]){const list=byPost.get(c.post_id)||[];if(list.length<30)list.push({id:c.id,body:c.body,created_at:c.created_at,username:c.username});byPost.set(c.post_id,list);}
+    const posts=(rows.results||[]).map(x=>({...x,liked:Boolean(x.liked),commentsList:byPost.get(x.id)||[]}));return out({posts});
   }
   if(p==="/api/posts"&&m==="POST"){
     if(!user)return out({error:"Sign in to do that."},401);const b=await req.json().catch(()=>({})),body=clean(b.body,1200);if(body.length<3)return out({error:"Write at least 3 characters."},400);
