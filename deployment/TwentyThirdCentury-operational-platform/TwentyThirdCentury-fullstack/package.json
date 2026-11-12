@@ -7,14 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js",
-    "cf:dev": "wrangler dev",
-    "cf:deploy": "wrangler deploy",
-    "cf:db:migrate": "wrangler d1 execute twentythirdcentury-db --remote --file=migrations/0001_initial.sql"
+    "check": "node --check server.js"
   },
-  "engines": {
-    "node": ">=20"
-  },
+  "engines": { "node": ">=20" },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.8.1",
@@ -22,8 +17,5 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2"
-  },
-  "devDependencies": {
-    "wrangler": "^4.45.0"
   }
 }
