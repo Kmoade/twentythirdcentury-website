@@ -1,11 +1,6 @@
-name = "twentythirdcentury-platform"
-main = "src/index.js"
+name = "twentythirdcentury"
+pages_build_output_dir = "./public"
 compatibility_date = "2026-11-12"
-
-[assets]
-directory = "./public"
-binding = "ASSETS"
-not_found_handling = "single-page-application"
 
 [[d1_databases]]
 binding = "DB"
