@@ -4,8 +4,9 @@ services:
     runtime: node
     plan: starter
     region: frankfurt
-    buildCommand: unzip -o deployment/TwentyThirdCentury-operational-platform.zip -d . && cd TwentyThirdCentury-fullstack && npm install
-    startCommand: cd TwentyThirdCentury-fullstack && npm start
+    rootDir: deployment/TwentyThirdCentury-operational-platform/TwentyThirdCentury-fullstack
+    buildCommand: npm install
+    startCommand: npm start
     healthCheckPath: /api/health
     disk:
       name: ttc-platform-data
