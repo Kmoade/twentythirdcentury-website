@@ -1,0 +1,1 @@
+Upload TwentyThirdCentury-operational-platform.zip into this folder. The Render Blueprint extracts it during the build. Keep the archive name unchanged.
