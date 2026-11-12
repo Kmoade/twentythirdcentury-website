@@ -127,6 +127,6 @@ export default { async fetch(req,env) {
     if(!env.DB||!env.JWT_SECRET||env.JWT_SECRET.length<32)return out({error:"The platform backend is not configured yet."},503);
     try{res=await api(req,env);}catch(e){res=fail(e);}
   }else res=await env.ASSETS.fetch(req);
-  const h=new Headers(res.headers);h.set("x-content-type-options","nosniff");h.set("referrer-policy","strict-origin-when-cross-origin");h.set("x-frame-options","DENY");h.set("permissions-policy","camera=(), microphone=(), geolocation=()");
+  const h=new Headers(res.headers);h.set("x-content-type-options","nosniff");h.set("referrer-policy","strict-origin-when-cross-origin");h.set("x-frame-options","DENY");h.set("permissions-policy","camera=(), microphone=(), geolocation=()");h.set("content-security-policy","default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
   return new Response(res.body,{status:res.status,statusText:res.statusText,headers:h});
 }};
