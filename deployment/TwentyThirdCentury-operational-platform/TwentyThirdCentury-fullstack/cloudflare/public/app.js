@@ -24,6 +24,7 @@ function setSignedIn(data) {
   updateAccount(); $("#authDialog").close(); $("#authFeedback").textContent = "";
   toast(`Welcome${state.user?.username ? ", " + state.user.username : ""}!`);
   loadPosts();
+  loadCheckins();
 }
 function updateAccount() {
   $("#accountLabel").textContent = state.user ? `@${state.user.username}` : "Guest mode";
@@ -152,9 +153,28 @@ $("#moodOptions").addEventListener("click", e => {
 $("#saveMood").addEventListener("click", async () => {
   if (!state.mood) { $("#moodFeedback").textContent = "Choose the mood that feels closest."; return; }
   if (!state.user) { openAuth("login"); $("#moodFeedback").textContent = "Sign in to save a private check-in to your account."; return; }
-  try { const data = await api("/api/checkins", { method:"POST", body:JSON.stringify({ mood:state.mood, note:$("#moodNote").value }) }); $("#moodFeedback").textContent = data.message; $("#moodNote").value = ""; toast("Check-in saved."); }
+  try { const data = await api("/api/checkins", { method:"POST", body:JSON.stringify({ mood:state.mood, note:$("#moodNote").value }) }); $("#moodFeedback").textContent = data.message; $("#moodNote").value = ""; toast("Check-in saved."); await loadCheckins(); }
   catch (error) { $("#moodFeedback").textContent = error.message; }
 });
+
+async function loadCheckins() {
+  const history = $("#checkinHistory");
+  if (!state.user) { history.innerHTML = ""; history.classList.add("hidden"); return; }
+  history.classList.remove("hidden");
+  history.innerHTML = '<div class="loading-line">Loading your private check-ins…</div>';
+  try {
+    const data = await api("/api/checkins");
+    const entries = data.checkins || [];
+    if (!entries.length) { history.innerHTML = '<p class="checkin-history-empty">Your saved check-ins will appear here.</p>'; return; }
+    const labels = {great:"Great",good:"Good",okay:"Okay",low:"Low",rough:"Rough"};
+    history.innerHTML = '<h4>Your recent check-ins</h4><div class="checkin-history-list">' + entries.map(item =>
+      '<article class="checkin-history-item"><div><strong>' + escapeHtml(labels[item.mood] || item.mood) + '</strong><time>' + escapeHtml(formatDate(item.created_at || "")) + '</time></div>' +
+      (item.note ? '<p>' + escapeHtml(item.note) + '</p>' : '') + '</article>'
+    ).join("") + '</div>';
+  } catch (error) {
+    history.innerHTML = '<p class="checkin-history-empty">' + escapeHtml(error.message) + '</p>';
+  }
+}
 let game = { running:false, score:0, left:20, interval:null };
 function moveTarget() {
   const target = $("#gameTarget"); const x = Math.round(Math.random()*90 - 45); const y = Math.round(Math.random()*34 - 17);
@@ -180,4 +200,5 @@ $("#startGame").addEventListener("click", () => {
     catch { signOut(false); }
   }
   await loadPosts();
+  if (state.user) await loadCheckins();
 })();
