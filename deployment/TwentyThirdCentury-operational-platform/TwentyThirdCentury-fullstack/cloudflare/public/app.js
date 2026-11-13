@@ -35,6 +35,7 @@ function signOut(showToast = true) {
   state.token = ""; state.user = null; sessionStorage.removeItem("ttc_token"); updateAccount();
   if (showToast) toast("You've signed out.");
   loadPosts();
+  loadCheckins();
 }
 function addMessage(text, who) {
   const wrapper = document.createElement("div"); wrapper.className = `message ${who}`;
