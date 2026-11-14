@@ -1,5 +1,27 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+const themeButton = $("#themeToggle");
+function applyTheme(theme) {
+  const selected = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = selected;
+  document.documentElement.style.colorScheme = selected;
+  if (themeButton) {
+    themeButton.setAttribute("aria-pressed", String(selected === "dark"));
+    themeButton.setAttribute("aria-label", selected === "dark" ? "Switch to light appearance" : "Switch to dark appearance");
+    themeButton.innerHTML = selected === "dark" ? '<span aria-hidden="true">☀</span><span id="themeLabel">Light mode</span>' : '<span aria-hidden="true">☾</span><span id="themeLabel">Dark mode</span>';
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = selected === "dark" ? "#111b24" : "#f5f7f6";
+}
+const savedTheme = localStorage.getItem("ttc_theme");
+applyTheme(savedTheme || "light");
+themeButton?.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("ttc_theme", next);
+  applyTheme(next);
+});
+
 const state = { token: sessionStorage.getItem("ttc_token") || "", user: null, agent: "nova", mood: "", authMode: "login", chatBusy: false };
 const agentInfo = {
   nova: { name: "Nova", icon: "✳", ready: "Nova is ready", greeting: "Hey, I'm Nova. What's an idea you've been carrying around? We can give it a shape together." },
