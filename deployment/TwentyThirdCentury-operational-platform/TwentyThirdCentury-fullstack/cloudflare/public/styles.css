@@ -116,3 +116,6 @@ html[data-theme="dark"] .support-strip { border-color:#5c5847; background:#2c302
 html[data-theme="dark"] .support-strip small,html[data-theme="dark"] .support-strip a { color:#d0c6a9; }
 @media(max-width:900px) { .support-strip { width:calc(100% - 34px); margin-top:15px; } }
 @media(max-width:680px) { .support-strip { gap:8px; padding:8px 10px; } .support-strip a { max-width:95px; text-align:right; } }
+
+.hero { background:radial-gradient(ellipse at 78% 100%,rgba(95,146,128,.17),transparent 39%),linear-gradient(116deg,#17242d 0%,#1a2934 55%,#1c3035 100%); border-radius:22px; }
+@media(max-width:900px) { .hero { padding-left:22px; padding-right:22px; } .hero-bottom { left:22px; right:22px; } }
