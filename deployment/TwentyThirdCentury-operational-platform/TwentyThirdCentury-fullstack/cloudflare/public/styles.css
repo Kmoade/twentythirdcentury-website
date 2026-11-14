@@ -81,3 +81,38 @@ html[data-theme="dark"] .auth-dialog>p,html[data-theme="dark"] .auth-disclaimer 
 html[data-theme="dark"] .auth-tabs { background:#14212a; }
 html[data-theme="dark"] .auth-tabs button { color:#a1b1aa; }
 html[data-theme="dark"] .auth-tabs button.active { background:#304536; color:#edf3ec; }
+
+/* Desktop shell inspired by the welcoming TwentyThirdCentury dashboard. */
+@media (min-width: 901px) {
+  .topbar { position:fixed; inset:0 auto 0 0; width:246px; height:100vh; min-height:620px; padding:27px 17px 20px; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:34px; background:#111d26; border:0; border-right:1px solid rgba(255,255,255,.06); }
+  .brand { color:#f1f4f1; font-size:14px; letter-spacing:-.5px; white-space:normal; }
+  .brand > span:last-child { display:flex; flex-direction:column; line-height:1.1; }
+  .brand-light { margin:0; color:#c9ed9d; }
+  .desktop-nav { display:flex; flex-direction:column; gap:7px; margin-top:24px; }
+  .desktop-nav a { display:flex; min-height:44px; align-items:center; padding:0 12px; border-radius:11px; color:#a6b1af; font-size:12px; }
+  .desktop-nav a:hover { color:#f4f7f3; background:rgba(255,255,255,.06); }
+  .account-actions { width:100%; margin-top:auto; flex-wrap:wrap; gap:8px; }
+  .account-label { width:100%; padding:0 4px; color:#9aaba3; }
+  .theme-toggle,.account-actions #authOpen { width:100%; justify-content:center; min-height:38px; }
+  main,.footer { margin-left:246px; }
+  .support-strip { margin-top:22px; }
+  .hero { width:calc(100% - 64px); max-width:1180px; min-height:510px; margin-top:18px; padding:42px 34px 55px; border-radius:25px; overflow:hidden; background:radial-gradient(ellipse at 80% 100%,rgba(95,146,128,.17),transparent 39%),linear-gradient(116deg,#17242d 0%,#1a2934 55%,#1c3035 100%); box-shadow:0 14px 36px rgba(29,47,51,.08); }
+  .hero-copy { padding-left:4px; }
+  .hero h1 { color:#f5f6ed; font-size:clamp(48px,5vw,68px); }
+  .hero-lede { color:#bdc9c5; }
+  .hero-proof p { color:#a8b8af; }
+  .hero-proof strong { color:#eef4e9; }
+  .hero-bottom { left:34px; right:34px; border-color:rgba(255,255,255,.12); color:#81948d; }
+  .planet-scene { min-height:390px; }
+  .section { max-width:1180px; }
+}
+.support-strip { display:flex; min-height:58px; align-items:center; gap:12px; padding:9px 15px; border:1px solid #ede4ce; border-radius:13px; background:#fffcf3; color:#4e483a; }
+.support-strip-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:10px; background:#f6edd7; color:#8c784c; font-size:22px; }
+.support-strip > span:nth-child(2) { display:flex; flex-direction:column; gap:2px; }
+.support-strip strong { font-size:11px; }
+.support-strip small { color:#817761; font-size:10px; }
+.support-strip a { margin-left:auto; color:#57513f; font-size:10px; font-weight:700; text-decoration:none; }
+html[data-theme="dark"] .support-strip { border-color:#5c5847; background:#2c302c; color:#f0ead8; }
+html[data-theme="dark"] .support-strip small,html[data-theme="dark"] .support-strip a { color:#d0c6a9; }
+@media(max-width:900px) { .support-strip { width:calc(100% - 34px); margin-top:15px; } }
+@media(max-width:680px) { .support-strip { gap:8px; padding:8px 10px; } .support-strip a { max-width:95px; text-align:right; } }
