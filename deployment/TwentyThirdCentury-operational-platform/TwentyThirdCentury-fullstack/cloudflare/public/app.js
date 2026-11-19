@@ -22,7 +22,7 @@ themeButton?.addEventListener("click", () => {
   applyTheme(next);
 });
 
-const state = { token: sessionStorage.getItem("ttc_token") || "", user: null, agent: "nova", mood: "", authMode: "login", chatBusy: false };
+const state = { token: sessionStorage.getItem("ttc_token") || "", user: null, isAdmin: false, agent: "nova", mood: "", authMode: "login", chatBusy: false };
 const agentInfo = {
   nova: { name: "Nova", icon: "✳", ready: "Nova is ready", greeting: "Hey, I'm Nova. What's an idea you've been carrying around? We can give it a shape together." },
   byte: { name: "Byte", icon: "⌘", ready: "Byte is ready", greeting: "Hey, I'm Byte. Tell me what you'd like to learn or build, and we'll work through it step by step." },
@@ -40,8 +40,9 @@ async function api(url, options = {}) {
   if (!response.ok) { if (response.status === 401 && state.token) signOut(false); throw new Error(data.error || "Request failed. Please try again."); }
   return data;
 }
-function setSignedIn(data) {
+async function setSignedIn(data) {
   state.token = data.token; state.user = data.user;
+  try { const profile = await api("/api/me"); state.isAdmin = Boolean(profile.isAdmin); } catch { state.isAdmin = false; }
   sessionStorage.setItem("ttc_token", state.token);
   updateAccount(); $("#authDialog").close(); $("#authFeedback").textContent = "";
   toast(`Welcome${state.user?.username ? ", " + state.user.username : ""}!`);
@@ -52,9 +53,11 @@ function updateAccount() {
   $("#accountLabel").textContent = state.user ? `@${state.user.username}` : "Guest mode";
   $("#authOpen").textContent = state.user ? "Sign out" : "Sign in";
   $("#writePostBtn").textContent = state.user ? "＋ Share something" : "＋ Sign in to post";
+  $("#adminNav").classList.toggle("hidden", !state.isAdmin);
+  $("#adminModeration").classList.toggle("hidden", !state.isAdmin);
 }
 function signOut(showToast = true) {
-  state.token = ""; state.user = null; sessionStorage.removeItem("ttc_token"); updateAccount();
+  state.token = ""; state.user = null; state.isAdmin = false; sessionStorage.removeItem("ttc_token"); updateAccount();
   if (showToast) toast("You've signed out.");
   loadPosts();
   loadCheckins();
@@ -126,7 +129,7 @@ $("#authForm").addEventListener("submit", async e => {
   try {
     const body = { email: $("#authEmail").value, password: $("#authPassword").value };
     if (register) body.username = $("#authUsername").value;
-    setSignedIn(await api(register ? "/api/auth/register" : "/api/auth/login", { method:"POST", body:JSON.stringify(body) }));
+    await setSignedIn(await api(register ? "/api/auth/register" : "/api/auth/login", { method:"POST", body:JSON.stringify(body) }));
     $("#authForm").reset();
   } catch (error) { $("#authFeedback").textContent = error.message; }
   finally { button.disabled = false; }
@@ -144,6 +147,36 @@ $("#postForm").addEventListener("submit", async e => {
   catch (error) { toast(error.message); } finally { button.disabled = false; }
 });
 $("#loadPosts").addEventListener("click", loadPosts);
+function renderAdminReport(report) {
+  const card = document.createElement("article"); card.className = "admin-report";
+  const status = report.status || "open";
+  card.innerHTML = '<div class="admin-report-head"><div><span class="report-status ' + (status === "open" ? "is-open" : "is-resolved") + '">' + escapeHtml(status) + '</span><span class="report-reason">' + escapeHtml(report.reason) + '</span></div><time>' + escapeHtml(formatDate(report.created_at || "")) + '</time></div>' +
+    '<p class="admin-post-body">' + escapeHtml(report.post_body || "[Post unavailable]") + '</p><div class="admin-report-meta">Reported by <strong>' + escapeHtml(report.reporter) + '</strong> · Post by <strong>' + escapeHtml(report.author) + '</strong> · #' + Number(report.post_id) + '</div>' +
+    (report.details ? '<p class="admin-details"><strong>Additional details:</strong> ' + escapeHtml(report.details) + '</p>' : "") +
+    (status === "open" ? '<div class="admin-actions"><button class="btn btn-outline btn-small" data-report-action="dismiss" data-report-id="' + Number(report.id) + '">Dismiss report</button><button class="btn btn-primary btn-small" data-report-action="hide" data-report-id="' + Number(report.id) + '">Hide post & resolve</button></div>' : '<p class="admin-resolved-note">This report has been resolved.</p>');
+  return card;
+}
+async function loadAdminReports() {
+  const panel = $("#adminReports");
+  if (!state.user || !state.isAdmin) { panel.innerHTML = '<div class="empty-state">Administrator access is required.</div>'; return; }
+  panel.innerHTML = '<div class="loading-line">Loading reports…</div>';
+  try { const data = await api("/api/admin/reports"), reports = data.reports || [];
+    $("#adminReportCount").textContent = reports.filter(r => r.status === "open").length + " open · " + reports.length + " total";
+    panel.innerHTML = "";
+    if (!reports.length) { panel.innerHTML = '<div class="empty-state">No reports yet. Your moderation queue is clear.</div>'; return; }
+    reports.forEach(report => panel.append(renderAdminReport(report)));
+  } catch (error) { panel.innerHTML = '<div class="empty-state">' + escapeHtml(error.message) + '</div>'; }
+}
+$("#refreshReports").addEventListener("click", loadAdminReports);
+$("#adminReports").addEventListener("click", async e => {
+  const button = e.target.closest("button[data-report-action]"); if (!button) return;
+  const id = Number(button.dataset.reportId), action = button.dataset.reportAction;
+  if (!window.confirm(action === "hide" ? "Hide this post and resolve its reports?" : "Dismiss this report?")) return;
+  button.disabled = true;
+  try { await api("/api/admin/reports/" + id + "/resolve", { method:"POST", body:JSON.stringify({action}) });
+    toast(action === "hide" ? "Post hidden and reports resolved." : "Report dismissed."); await loadAdminReports(); await loadPosts();
+  } catch (error) { toast(error.message); button.disabled = false; }
+});
 $("#feed").addEventListener("click", async e => {
   const button = e.target.closest("button[data-action]"); if (!button) return;
   const card = button.closest(".post-card"); const id = card.dataset.id;
@@ -219,9 +252,10 @@ $("#startGame").addEventListener("click", () => {
 });
 (async function init() {
   if (state.token) {
-    try { const data = await api("/api/me"); state.user = data.user; updateAccount(); }
+    try { const data = await api("/api/me"); state.user = data.user; state.isAdmin = Boolean(data.isAdmin); updateAccount(); }
     catch { signOut(false); }
   }
   await loadPosts();
   if (state.user) await loadCheckins();
+  if (state.isAdmin) await loadAdminReports();
 })();
