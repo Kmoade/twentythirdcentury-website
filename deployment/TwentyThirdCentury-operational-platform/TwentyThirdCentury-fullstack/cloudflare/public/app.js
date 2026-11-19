@@ -48,6 +48,7 @@ async function setSignedIn(data) {
   toast(`Welcome${state.user?.username ? ", " + state.user.username : ""}!`);
   loadPosts();
   loadCheckins();
+  if (state.isAdmin) loadAdminReports();
 }
 function updateAccount() {
   $("#accountLabel").textContent = state.user ? `@${state.user.username}` : "Guest mode";
